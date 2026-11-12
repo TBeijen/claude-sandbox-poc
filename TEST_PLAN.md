@@ -26,6 +26,8 @@ Docs: https://code.claude.com/docs/en/sandboxing
 |---|---|
 | `config/settings.sandbox.json` | Docs-style sandbox: enabled, auto-allow Bash, no escape hatch, `denyRead` canaries |
 | `config/settings.sandbox-deny.json` | Same, plus permission `deny` rules for Read/Edit |
+| `config/settings.sandbox-deny-policy.json` | Same as sandbox-deny, plus `Edit` deny rules protecting the settings files themselves |
+| `config/settings.sandbox-allowlist.json` | Default-deny reads outside the project (`blockReadsOutsideWorkingDirectories`), only mise re-opened; **no** canary deny rules |
 | `config/settings.off.json` | Sandbox disabled (baseline inside Claude) |
 | `setup.sh` | Creates canaries, keychain item, `~/.claude-poc` with the `sandbox` config |
 | `switch-config.sh <variant>` | Swaps the active settings (restart Claude afterwards) |
@@ -98,6 +100,33 @@ Repeat R1 and R2, plus route B for T1. Expected: Read/Grep are now refused. Then
 (`~/.poc-secrets/../.poc-secrets/token`, a symlink created inside cwd pointing at the canary, Glob)
 to see how robust argument matching is.
 
+### 3b. Protect the policy files
+
+```bash
+./switch-config.sh sandbox-deny-policy   # then restart ./start.sh
+```
+
+Adds `Edit(~/.claude-poc/**)`, `Edit(.claude/**)` and `Edit(**/.claude/settings*.json)` deny rules
+(`Edit` rules cover the Write tool too). Repeat R3 and R4. Expected: both refused without a prompt.
+Then try to get around it: a relative path (`../../../.claude-poc/settings.json`), a symlink inside
+cwd pointing at `~/.claude-poc/settings.json`, and `.claude/settings.local.json`.
+
+### 3c. Allow-list instead of deny-list
+
+```bash
+./switch-config.sh sandbox-allowlist
+./start.sh --permission-mode default
+```
+
+`permissions.blockReadsOutsideWorkingDirectories: true` (key name taken from an auto-mode prompt,
+check `/doctor`) makes reads outside the project default-deny for both the file tools and sandboxed
+Bash. `sandbox.filesystem.allowRead` re-opens only the mise installs, so `python3`/`curl` still
+work. The canary deny rules are deliberately **removed**: the canaries should be unreachable
+without being listed anywhere.
+
+Run route B and R1. Expected: T1–T4 and T11 BLOCKED, R1 refused without a prompt. If T3 fails
+for a different reason (python3 not found), add the path it needs to `allowRead`.
+
 ### 4. Sandbox off (contrast)
 
 ```bash
@@ -131,26 +160,26 @@ Remove the temp profile's "Claude Code" login item in Keychain Access if it's th
 
 Fill in per run. Claude Code version: `claude --version` =
 
-| Test | Plain terminal | sandbox: `!` | sandbox: Bash tool | sandbox-deny: Bash tool | off: Bash tool | nono: `!` | nono: Bash tool |
-|---|---|---|---|---|---|---|---|
-| T1 | | | | | | | |
-| T2 | | | | | | | |
-| T3 | | | | | | | |
-| T4 | | | | | | | |
-| T5 | | | | | | | |
-| T6 | | | | | | | |
-| T7 | | | | | | | |
-| T8 | | | | | | | |
-| T9 | | | | | | | |
-| T10 | | | | | | | |
-| T11 | | | | | | | |
+| Test | Plain terminal | sandbox: `!` | sandbox: Bash tool | sandbox-deny: Bash tool | allowlist: Bash tool | off: Bash tool | nono: `!` | nono: Bash tool |
+|---|---|---|---|---|---|---|---|---|
+| T1 | | | | | | | | |
+| T2 | | | | | | | | |
+| T3 | | | | | | | | |
+| T4 | | | | | | | | |
+| T5 | | | | | | | | |
+| T6 | | | | | | | | |
+| T7 | | | | | | | | |
+| T8 | | | | | | | | |
+| T9 | | | | | | | | |
+| T10 | | | | | | | | |
+| T11 | | | | | | | | |
 
-| Test | sandbox | sandbox-deny | nono |
-|---|---|---|---|
-| R1 Read tool | | | |
-| R2 Grep | | | |
-| R3 Write project settings | | | |
-| R4 Edit profile settings | | | |
+| Test | sandbox | sandbox-deny | sandbox-deny-policy | allowlist | nono |
+|---|---|---|---|---|---|
+| R1 Read tool | | | | | |
+| R2 Grep | | | | | |
+| R3 Write project settings | | | | | |
+| R4 Edit profile settings | | | | | |
 
 ## Notes / findings
 

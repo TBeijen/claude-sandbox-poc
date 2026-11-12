@@ -1,0 +1,19 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyRead": ["~/.poc-secrets/**"]
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Read(~/.poc-secrets/**)",
+      "Edit(~/.poc-secrets/**)",
+      "Edit(~/.claude-poc/**)",
+      "Edit(.claude/**)",
+      "Edit(**/.claude/settings*.json)"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "allowRead": ["~/.local/share/mise/**"]
+    }
+  },
+  "permissions": {
+    "blockReadsOutsideWorkingDirectories": true,
+    "deny": [
+      "Edit(~/.claude-poc/**)",
+      "Edit(.claude/**)",
+      "Edit(**/.claude/settings*.json)"
+    ]
+  }
+}

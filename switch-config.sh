@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Installs one of the config/settings.<variant>.json files as the temporary profile's settings.
-# Usage: ./switch-config.sh sandbox|sandbox-deny|off   (restart Claude afterwards)
+# Usage: ./switch-config.sh sandbox|sandbox-deny|sandbox-deny-policy|sandbox-allowlist|off   (restart Claude afterwards)
 set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 CONFIG_DIR="$HOME/.claude-poc"
-variant=${1:?usage: $0 sandbox|sandbox-deny|off}
+variant=${1:?usage: $0 sandbox|sandbox-deny|sandbox-deny-policy|sandbox-allowlist|off}
 src="$HERE/config/settings.$variant.json"
 
 [[ -f $src ]] || { echo "unknown variant: $variant" >&2; exit 1; }
