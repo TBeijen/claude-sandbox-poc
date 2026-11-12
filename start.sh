@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Starts Claude Code with the temporary profile, from this directory.
+# Forces manual permission mode: without the flag the session starts in auto mode (cause unknown).
 # Usage: ./start.sh          plain (Claude's own sandbox only)
 #        ./start.sh --nono   wrapped in nono, only this dir + the profile allowed
 set -euo pipefail
@@ -11,7 +12,7 @@ cd "$HERE"
 if [[ ${1:-} == --nono ]]; then
   shift
   # Likely needs extra --allow flags for Claude to start (node/mise installs, keychain for login).
-  exec nono run --allow "$HERE" --allow "$CONFIG_DIR" -- env CLAUDE_CONFIG_DIR="$CONFIG_DIR" claude "$@"
+  exec nono run --allow "$HERE" --allow "$CONFIG_DIR" --allow "$HOME/.zscaler" -- env CLAUDE_CONFIG_DIR="$CONFIG_DIR" claude --permission-mode default "$@"
 fi
 
-exec env CLAUDE_CONFIG_DIR="$CONFIG_DIR" claude "$@"
+exec env CLAUDE_CONFIG_DIR="$CONFIG_DIR" claude --permission-mode default "$@"

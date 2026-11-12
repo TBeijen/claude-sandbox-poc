@@ -72,6 +72,17 @@ See [TEST_PLAN.md](TEST_PLAN.md) for the setup and what each test does.
   configured to. `/doctor` offered to save this to settings (declined). Source not yet
   identified: check `/status` for managed or remote settings, and the shell for aliases or env vars.
   If it comes from managed settings, those may also override `sandbox` / `permissions` keys.
+  `/status` in the POC session: *Setting sources: User settings* only (no managed, project or
+  local source), *Auto mode server: Enabled* (Enterprise account feature), login method Claude
+  Enterprise account. `/config` shows *Default permission mode: Manual*. So no settings layer
+  overrides the sandbox config, and the cause of the auto-mode start is still unknown (likely the
+  account feature; untested). Test: `./start.sh --permission-mode default`.
+  **Result:** with `--permission-mode default` the session starts in manual mode; without the flag
+  it starts in auto mode, even though `/config` says *Default permission mode: Manual*. Cause not
+  found (the account's auto-mode feature is the suspect). `start.sh` now passes the flag by default.
+- **Corporate proxy:** `/status` lists *Additional CA cert(s): ~/.zscaler/bundle_combined.pem*.
+  Under nono Claude will need read access to `~/.zscaler`, or TLS to the API fails. Add
+  `--allow ~/.zscaler` to the nono command in step 5.
 - **`!` (user bash mode) is not sandboxed.** Route A matches the plain-terminal baseline on every
   probe. Route B confirms the sandbox *was* active for the Bash tool in the same session, and it sets
   `SANDBOX_RUNTIME=1` (unset in route A). This matters less than it sounds, because you type `!`
